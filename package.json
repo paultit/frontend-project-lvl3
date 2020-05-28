@@ -1,0 +1,55 @@
+{
+  "name": "frontend-project-lvl3",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "start": "webpack-dev-server --open",
+    "build": "NODE_ENV=production babel src --out-dir dist",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paultit/frontend-project-lvl3.git"
+  },
+  "author": {
+    "name": "Titarenko Pavlo",
+    "email": "titarenko.pavel@gmail.com"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/paultit/frontend-project-lvl3/issues"
+  },
+  "homepage": "https://github.com/paultit/frontend-project-lvl3#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.9.6",
+    "@babel/node": "^7.8.7",
+    "@babel/preset-env": "^7.9.6",
+    "babel-loader": "^8.1.0",
+    "css-loader": "^3.5.3",
+    "eslint": "^7.0.0",
+    "eslint-config-airbnb-base": "^14.1.0",
+    "eslint-plugin-babel": "^5.3.0",
+    "eslint-plugin-import": "^2.20.2",
+    "html-webpack-plugin": "^4.3.0",
+    "node-sass": "^4.14.1",
+    "postcss-loader": "^3.0.0",
+    "sass-loader": "^8.0.2",
+    "style-loader": "^1.2.1",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.11.0"
+  },
+  "dependencies": {
+    "@babel/polyfill": "^7.8.7",
+    "autoprefixer": "^9.8.0",
+    "bootstrap": "^4.5.0",
+    "jquery": "^3.5.1",
+    "popper.js": "^1.16.1",
+    "sugarss": "^2.0.0"
+  }
+}
