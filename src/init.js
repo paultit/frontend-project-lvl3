@@ -1,10 +1,10 @@
 import '@babel/polyfill';
-import Container from './Container';
-import 'bootstrap';
+import 'bootstrap/js/dist/modal';
+import 'bootstrap/js/dist/alert';
 import './styles.scss';
+import init from './app';
 
 export default () => {
   const element = document.getElementById('point');
-  const obj = new Container(element);
-  obj.init();
+  init(element);
 };

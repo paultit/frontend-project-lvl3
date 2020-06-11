@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "start": "webpack-dev-server --open",
-    "prepublishOnly": "npm run build"  
+    "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -46,9 +46,13 @@
   "dependencies": {
     "@babel/polyfill": "^7.8.7",
     "autoprefixer": "^9.8.0",
+    "axios": "^0.19.2",
     "bootstrap": "^4.5.0",
     "jquery": "^3.5.1",
+    "lodash": "^4.17.15",
+    "melanke-watchjs": "^1.5.2",
     "popper.js": "^1.16.1",
-    "sugarss": "^2.0.0"
+    "sugarss": "^2.0.0",
+    "yup": "^0.29.1"
   }
 }
