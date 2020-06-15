@@ -1,3 +1,5 @@
+import i18next from 'i18next';
+
 export const renderFeeds = (feeds) => {
   const listFeeds = document.querySelector('#rss-feeds');
   listFeeds.innerHTML = '';
@@ -46,5 +48,26 @@ export const renderForm = (state, input) => {
   } else {
     input.classList.add('invalid');
     submitButton.disabled = !valid;
+  }
+};
+
+export const renderErrors = (state) => {
+  const { errors } = state.form;
+  const error = document.querySelector('div.messages');
+  error.innerHTML = '';
+  switch (errors) {
+    case null:
+      break;
+    case 'invalid':
+      error.textContent = i18next.t('errors.invalid');
+      break;
+    case 'not-found':
+      error.textContent = i18next.t('errors.undefined');
+      break;
+    case 'network':
+      error.textContent = i18next.t('errors.network');
+      break;
+    default:
+      throw new Error(`Unknown error state: '${errors}'!`);
   }
 };
