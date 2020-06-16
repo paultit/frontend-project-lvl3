@@ -3,10 +3,10 @@ export default {
     errors: {
       invalid: 'Please enter a valid URL adress.',
       network: 'Try again. Problems network.',
-      undefined: 'We were not able to find an RSS feed',
+      undefined: 'RSS feed not found',
     },
     processState: {
-      sending: 'Request in progress...',
+      sending: 'Loading...',
       finished: 'Feed has been added!',  
     }
   },

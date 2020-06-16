@@ -1,6 +1,7 @@
 import '@babel/polyfill';
 import { watch } from 'melanke-watchjs';
 import axios from 'axios';
+import $ from 'jquery';
 import _ from 'lodash';
 import i18next from 'i18next';
 import resources from './locales';
@@ -11,6 +12,7 @@ import {
 
 const proxy = 'cors-anywhere.herokuapp.com';
 const getUrl = (value) => `https://${proxy}/${value}`;
+const getNewPosts = (currentPosts, oldPosts) => _.differenceWith(currentPosts, oldPosts, _.isEqual);
 
 export default () => {
   i18next.init({
@@ -30,10 +32,17 @@ export default () => {
     listFeeds: [],
     listPosts: [],
   };
+
+  $(window).on('load', () => {
+    const preloader = $('.spinner');
+    preloader.delay(1000).fadeOut('slow');
+  });
+
   const submitButton = document.querySelector('button[type="submit"]');
   const input = document.querySelector('input.form-control');
   const form = document.querySelector('.rss-form');
   const message = document.querySelector('div.messages');
+
   const processFormHandler = () => {
     const { processState } = state.form;
     switch (processState) {
@@ -51,7 +60,6 @@ export default () => {
         break;
       case 'failed':
         submitButton.disabled = true;
-        // TODO render error
         break;
       default:
         throw new Error(`Unknown state: ${processState}`);
@@ -85,26 +93,61 @@ export default () => {
     const id = _.uniqueId();
     axios.get(url)
       .then((response) => {
-        console.log(response);
         const { feed, posts } = parse(response.data);
-        console.log(feed);
         state.listFeeds.push({ ...feed, id, link: inputValue });
-        console.log(state.listFeeds);
         posts.forEach((post) => state.listPosts.push({ ...post, id }));
         state.form.processState = 'finished';
         state.form.errors = null;
       })
-      .catch((error) => {
+      .catch((response, error) => {
         state.form.valid = false;
         state.form.processState = 'failed';
         submitButton.disabled = true;
-        state.form.errors = 'network';
+        if (response.status >= 500) {
+          state.form.errors = 'network';
+        } else {
+          state.form.errors = 'not-found';
+        }
         throw error;
       });
   });
+
   watch(state.form, 'processState', () => processFormHandler());
   watch(state.form, 'valid', () => renderForm(state, input));
   watch(state, 'listFeeds', () => renderFeeds(state.listFeeds));
   watch(state, 'listPosts', () => renderPosts(state.listPosts));
   watch(state.form, 'errors', () => renderErrors(state));
+
+  const addNewPosts = () => {
+    const { listFeeds } = state;
+    const { listPosts } = state;
+    if (listFeeds.length === 0) {
+      setTimeout(addNewPosts, 5000);
+      return;
+    }
+    listFeeds.forEach((feed) => {
+      const oldPosts = listPosts.filter((post) => post.id === feed.id);
+      const url = getUrl(feed.link);
+      axios.get(url)
+        .then((response) => {
+          const data = parse(response.data);
+          const updatePosts = data.posts;
+          return updatePosts.map((post) => ({ ...post, id: feed.id }));
+        })
+        .then((updatePosts) => getNewPosts(updatePosts, oldPosts))
+        .then((newPosts) => {
+          if (newPosts.length !== 0) {
+            newPosts.forEach((post) => [post, ...state.listPosts]);
+          }
+        })
+        .catch((error) => {
+          state.form.valid = false;
+          state.form.processForm = 'filling';
+          state.form.errors = 'network';
+          throw error;
+        });
+    });
+    setTimeout(addNewPosts, 5000);
+  };
+  setTimeout(addNewPosts, 5000);
 };

@@ -5,7 +5,6 @@ const schema = yup.object().shape({
 });
 
 export const validate = (url, feeds) => {
-  console.log(url);
   const isValid = schema.isValidSync({ checkUrl: url });
   const isUniq = !feeds.includes(url);
   return isValid && isUniq;
@@ -33,7 +32,6 @@ const getFeed = (data) => {
 export const parse = (data) => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(data, 'text/xml');
-  console.log(doc);
   const feed = getFeed(doc);
   const posts = getPosts(doc);
   return { feed, posts };
