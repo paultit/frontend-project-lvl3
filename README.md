@@ -5,23 +5,32 @@
 
 https://frontend-project-lvl3-2.now.sh
 
-1. Install dependencies:
+---
+
+### 1. Install dependencies:
+
+```
 $ make install
+```
+### 2. Run dev-server:
 
-2. Run dev-server:
+```
 $ make develop
+```
+### 3. Build project:
 
-3. Build project:
+```
 $ make build
-
-Simple RSS-reader.
-Project objective - create an RSS feed with automatic updates.
+```
+---
+### Simple RSS-reader.
+#### Project objective - create an RSS feed with automatic updates.
 This project was built on Hexlet courses for practicing:
 
-Browser infrastructure (Webpack)
-jQuery
-Bootsrap
-AJAX, axios
-Events, DOM
-Validation, DOMParser 
-Deploy 
+* Browser infrastructure (Webpack)
+* jQuery
+* Bootsrap
+* AJAX, axios
+* Events, DOM
+* Validation, DOMParser 
+* Deploy [zeit](https://vercel.com/docs)
