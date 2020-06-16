@@ -2,8 +2,8 @@ export default {
   translation: {
     errors: {
       invalid: 'Please enter a valid URL adress.',
-      network: 'Try again. Problems network.',
-      undefined: 'RSS feed not found',
+      problemsNetwork: 'Try again. Problems network.',
+      notFound: 'RSS feed not found',
     },
     processState: {
       sending: 'Loading...',

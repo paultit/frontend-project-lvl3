@@ -104,7 +104,7 @@ export default () => {
         state.form.processState = 'failed';
         submitButton.disabled = true;
         if (response.status >= 500) {
-          state.form.errors = 'network';
+          state.form.errors = 'problems-network';
         } else {
           state.form.errors = 'not-found';
         }

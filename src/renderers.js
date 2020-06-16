@@ -62,10 +62,10 @@ export const renderErrors = (state) => {
       error.textContent = i18next.t('errors.invalid');
       break;
     case 'not-found':
-      error.textContent = i18next.t('errors.undefined');
+      error.textContent = i18next.t('errors.notFound');
       break;
-    case 'network':
-      error.textContent = i18next.t('errors.network');
+    case 'problems-network':
+      error.textContent = i18next.t('errors.pronlemsNetwork');
       break;
     default:
       throw new Error(`Unknown error state: '${errors}'!`);
