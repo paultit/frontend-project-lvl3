@@ -43,10 +43,10 @@ export const renderForm = (state, input) => {
   const { valid } = state.form;
   const submitButton = document.querySelector('button[type="submit"]');
   if (state.form.valid === true) {
-    input.classList.remove('invalid');
+    input.classList.remove('border', 'border-danger');
     submitButton.disabled = !valid;
   } else {
-    input.classList.add('invalid');
+    input.classList.add('border', 'border-danger');
     submitButton.disabled = !valid;
   }
 };
@@ -60,6 +60,10 @@ export const renderErrors = (state) => {
       break;
     case 'invalid':
       error.textContent = i18next.t('errors.invalid');
+      break;
+    case 'not-uniq':
+      error.textContent = i18next.t('errors.notUniq');
+      console.log(error.textContent);
       break;
     case 'not-found':
       error.textContent = i18next.t('errors.notFound');

@@ -1,14 +1,11 @@
 import '@babel/polyfill';
-import { watch } from 'melanke-watchjs';
 import axios from 'axios';
-import $ from 'jquery';
 import _ from 'lodash';
 import i18next from 'i18next';
 import resources from './locales';
-import { validate, parse } from './utils.js';
-import {
-  renderErrors, renderForm, renderPosts, renderFeeds,
-} from './renderers';
+import { isValid } from './utils.js';
+import parse from './parser';
+import watch from './watchers';
 
 const proxy = 'cors-anywhere.herokuapp.com';
 const getUrl = (value) => `https://${proxy}/${value}`;
@@ -29,42 +26,20 @@ export default () => {
       valid: true,
       errors: null,
     },
-    listFeeds: [],
+    feeds: [],
     listPosts: [],
   };
 
-  $(window).on('load', () => {
-    const preloader = $('.spinner');
-    preloader.delay(1000).fadeOut('slow');
-  });
+  window.onload = () => {
+    const preloader = document.querySelector('.spinner');
+    setTimeout(() => {
+      preloader.style.display = 'none';
+    }, 1000);
+  };
 
   const submitButton = document.querySelector('button[type="submit"]');
   const input = document.querySelector('input.form-control');
   const form = document.querySelector('.rss-form');
-  const message = document.querySelector('div.messages');
-
-  const processFormHandler = () => {
-    const { processState } = state.form;
-    switch (processState) {
-      case 'filling':
-        submitButton.disabled = true;
-        break;
-      case 'sending':
-        submitButton.disabled = true;
-        message.textContent = i18next.t('processState.sending');
-        break;
-      case 'finished':
-        state.form.inputValue = '';
-        submitButton.disabled = false;
-        message.textContent = i18next.t('processState.finished');
-        break;
-      case 'failed':
-        submitButton.disabled = true;
-        break;
-      default:
-        throw new Error(`Unknown state: ${processState}`);
-    }
-  };
 
   input.addEventListener('input', (e) => {
     if (e.target.value === '') {
@@ -72,11 +47,18 @@ export default () => {
     } else {
       state.form.processState = 'filling';
       state.form.inputValue = e.target.value;
-      const { form: { inputValue }, listFeeds } = state;
-      const isValid = validate(inputValue, listFeeds);
-      if (isValid) {
-        state.form.valid = true;
-        state.form.errors = null;
+      const { form: { inputValue }, feeds } = state;
+      const isValidUrl = isValid(inputValue);
+      if (isValidUrl) {
+        const links = feeds.map(({ link }) => link);
+        const isUniq = !links.includes(inputValue);
+        if (isUniq) {
+          state.form.valid = true;
+          state.form.errors = null;
+        } else {
+          state.form.valid = false;
+          state.form.errors = 'not-uniq';
+        }
       } else {
         state.form.valid = false;
         state.form.errors = 'invalid';
@@ -94,9 +76,10 @@ export default () => {
     axios.get(url)
       .then((response) => {
         const { feed, posts } = parse(response.data);
-        state.listFeeds.push({ ...feed, id, link: inputValue });
+        state.feeds.push({ ...feed, id, link: inputValue });
         posts.forEach((post) => state.listPosts.push({ ...post, id }));
         state.form.processState = 'finished';
+        state.form.inputValue = '';
         state.form.errors = null;
       })
       .catch((response, error) => {
@@ -111,21 +94,15 @@ export default () => {
         throw error;
       });
   });
-
-  watch(state.form, 'processState', () => processFormHandler());
-  watch(state.form, 'valid', () => renderForm(state, input));
-  watch(state, 'listFeeds', () => renderFeeds(state.listFeeds));
-  watch(state, 'listPosts', () => renderPosts(state.listPosts));
-  watch(state.form, 'errors', () => renderErrors(state));
-
+  watch(state);
   const addNewPosts = () => {
-    const { listFeeds } = state;
+    const { feeds } = state;
     const { listPosts } = state;
-    if (listFeeds.length === 0) {
+    if (feeds.length === 0) {
       setTimeout(addNewPosts, 5000);
       return;
     }
-    listFeeds.forEach((feed) => {
+    feeds.forEach((feed) => {
       const oldPosts = listPosts.filter((post) => post.id === feed.id);
       const url = getUrl(feed.link);
       axios.get(url)
