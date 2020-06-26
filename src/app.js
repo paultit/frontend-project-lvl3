@@ -1,9 +1,8 @@
-import '@babel/polyfill';
 import axios from 'axios';
 import _ from 'lodash';
 import i18next from 'i18next';
 import resources from './locales';
-import { isValid } from './utils.js';
+import { validate } from './utils.js';
 import parse from './parser';
 import watch from './watchers';
 
@@ -24,10 +23,10 @@ export default () => {
       processError: null,
       inputValue: null,
       valid: true,
-      errors: null,
+      error: null,
     },
     feeds: [],
-    listPosts: [],
+    posts: [],
   };
 
   window.onload = () => {
@@ -40,28 +39,22 @@ export default () => {
   const submitButton = document.querySelector('button[type="submit"]');
   const input = document.querySelector('input.form-control');
   const form = document.querySelector('.rss-form');
-
   input.addEventListener('input', (e) => {
     if (e.target.value === '') {
       state.form.processState = 'filling';
     } else {
-      state.form.processState = 'filling';
       state.form.inputValue = e.target.value;
       const { form: { inputValue }, feeds } = state;
-      const isValidUrl = isValid(inputValue);
-      if (isValidUrl) {
-        const links = feeds.map(({ link }) => link);
-        const isUniq = !links.includes(inputValue);
-        if (isUniq) {
-          state.form.valid = true;
-          state.form.errors = null;
-        } else {
-          state.form.valid = false;
-          state.form.errors = 'not-uniq';
-        }
+      const validatedUrl = validate(feeds, inputValue);
+      if (validatedUrl.checkUrl && validatedUrl.checkAddedLinks) {
+        state.form.valid = true;
+        state.form.error = null;
+      } else if (validatedUrl.checkUrl && validatedUrl.checkUrl.name === 'ValidationError') {
+        state.form.valid = false;
+        state.form.error = 'invalid';
       } else {
         state.form.valid = false;
-        state.form.errors = 'invalid';
+        state.form.error = 'not-uniq';
       }
     }
   });
@@ -69,41 +62,39 @@ export default () => {
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     state.form.processState = 'sending';
-    submitButton.disabled = true;
     const { inputValue } = state.form;
     const url = getUrl(inputValue);
-    const id = _.uniqueId();
     axios.get(url)
       .then((response) => {
         const { feed, posts } = parse(response.data);
+        const id = _.uniqueId();
         state.feeds.push({ ...feed, id, link: inputValue });
-        posts.forEach((post) => state.listPosts.push({ ...post, id }));
+        posts.forEach((post) => state.posts.push({ ...post, id }));
         state.form.processState = 'finished';
         state.form.inputValue = '';
-        state.form.errors = null;
+        state.form.error = null;
       })
       .catch((response, error) => {
         state.form.valid = false;
         state.form.processState = 'failed';
         submitButton.disabled = true;
         if (response.status >= 500) {
-          state.form.errors = 'problems-network';
+          state.form.error = 'problems-network';
         } else {
-          state.form.errors = 'not-found';
+          state.form.error = 'not-found';
         }
         throw error;
       });
   });
-  watch(state);
+
   const addNewPosts = () => {
     const { feeds } = state;
-    const { listPosts } = state;
+    const { posts } = state;
     if (feeds.length === 0) {
       setTimeout(addNewPosts, 5000);
-      return;
     }
     feeds.forEach((feed) => {
-      const oldPosts = listPosts.filter((post) => post.id === feed.id);
+      const oldPosts = posts.filter((post) => post.id === feed.id);
       const url = getUrl(feed.link);
       axios.get(url)
         .then((response) => {
@@ -114,17 +105,18 @@ export default () => {
         .then((updatePosts) => getNewPosts(updatePosts, oldPosts))
         .then((newPosts) => {
           if (newPosts.length !== 0) {
-            newPosts.forEach((post) => [post, ...state.listPosts]);
+            newPosts.forEach((post) => [post, ...state.posts]);
           }
         })
         .catch((error) => {
           state.form.valid = false;
           state.form.processForm = 'filling';
-          state.form.errors = 'network';
+          state.form.error = 'network';
           throw error;
-        });
+        })
+        .finally(() => setTimeout(addNewPosts, 5000));
     });
-    setTimeout(addNewPosts, 5000);
   };
-  setTimeout(addNewPosts, 5000);
+  watch(state);
+  addNewPosts();
 };

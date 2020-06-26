@@ -52,26 +52,26 @@ export const renderForm = (state, input) => {
 };
 
 export const renderErrors = (state) => {
-  const { errors } = state.form;
-  const error = document.querySelector('div.messages');
-  error.innerHTML = '';
-  switch (errors) {
+  const { error } = state.form;
+  const message = document.querySelector('div.messages');
+  message.innerHTML = '';
+  switch (error) {
     case null:
       break;
     case 'invalid':
-      error.textContent = i18next.t('errors.invalid');
+      message.textContent = i18next.t('error.invalid');
       break;
     case 'not-uniq':
-      error.textContent = i18next.t('errors.notUniq');
-      console.log(error.textContent);
+      message.textContent = i18next.t('error.notUniq');
+      console.log(message.textContent);
       break;
     case 'not-found':
-      error.textContent = i18next.t('errors.notFound');
+      message.textContent = i18next.t('error.notFound');
       break;
     case 'problems-network':
-      error.textContent = i18next.t('errors.pronlemsNetwork');
+      message.textContent = i18next.t('error.pronlemsNetwork');
       break;
     default:
-      throw new Error(`Unknown error state: '${errors}'!`);
+      throw new Error(`Unknown error state: '${error}'!`);
   }
 };

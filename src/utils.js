@@ -1,24 +1,31 @@
 import * as yup from 'yup';
+import _ from 'lodash';
 
-const schema = yup.object().shape({
-  checkUrl: yup.string().url().required(),
-});
-
-export const isValid = (url) => {
-  const isValidUrl = schema.isValidSync({ checkUrl: url });
-  return isValidUrl;
+export const validate = (feeds, url) => {
+  try {
+    const links = feeds.map(({ link }) => link);
+    const schema = yup.object().shape({
+      checkUrl: yup.string().url().required(''),
+      checkAddedLinks: yup.string().notOneOf(links),
+    });
+    const validatedUrl = schema.validateSync({ checkUrl: url, checkAddedLinks: url },
+      { abortEarly: false });
+    return validatedUrl;
+  } catch (e) {
+    return _.keyBy(e.inner, 'path');
+  }
 };
 
 export const getPosts = (data) => {
   const items = data.querySelectorAll('channel > item');
-  const listPosts = [...items].map((item) => {
+  const posts = [...items].map((item) => {
     const title = item.querySelector('title').textContent;
     const description = item.querySelector('description').textContent;
     const link = item.querySelector('link').textContent;
     const post = { title, description, link };
     return post;
   });
-  return listPosts;
+  return posts;
 };
 
 export const getFeed = (data) => {

@@ -33,6 +33,6 @@ export default (state) => {
   watch(state.form, 'processState', () => processFormHandler());
   watch(state.form, 'valid', () => renderForm(state, input));
   watch(state, 'feeds', () => renderFeeds(state.feeds));
-  watch(state, 'listPosts', () => renderPosts(state.listPosts));
-  watch(state.form, 'errors', () => renderErrors(state));
+  watch(state, 'posts', () => renderPosts(state.posts));
+  watch(state.form, 'error', () => renderErrors(state));
 };
