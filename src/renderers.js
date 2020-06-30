@@ -53,6 +53,7 @@ export const renderForm = (state, input) => {
 
 export const renderErrors = (state) => {
   const { error } = state.form;
+  console.log(error);
   const message = document.querySelector('div.messages');
   message.innerHTML = '';
   switch (error) {
@@ -69,7 +70,7 @@ export const renderErrors = (state) => {
       message.textContent = i18next.t('error.notFound');
       break;
     case 'problems-network':
-      message.textContent = i18next.t('error.pronlemsNetwork');
+      message.textContent = i18next.t('error.problemsNetwork');
       break;
     default:
       throw new Error(`Unknown error state: '${error}'!`);

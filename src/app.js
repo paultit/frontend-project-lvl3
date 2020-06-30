@@ -2,7 +2,7 @@ import axios from 'axios';
 import _ from 'lodash';
 import i18next from 'i18next';
 import resources from './locales';
-import { validate } from './utils.js';
+import validate from './utils.js';
 import parse from './parser';
 import watch from './watchers';
 
@@ -36,7 +36,6 @@ export default () => {
     }, 1000);
   };
 
-  const submitButton = document.querySelector('button[type="submit"]');
   const input = document.querySelector('input.form-control');
   const form = document.querySelector('.rss-form');
   input.addEventListener('input', (e) => {
@@ -44,18 +43,7 @@ export default () => {
       state.form.processState = 'filling';
     } else {
       state.form.inputValue = e.target.value;
-      const { form: { inputValue }, feeds } = state;
-      const validatedUrl = validate(feeds, inputValue);
-      if (validatedUrl.checkUrl && validatedUrl.checkAddedLinks) {
-        state.form.valid = true;
-        state.form.error = null;
-      } else if (validatedUrl.checkUrl && validatedUrl.checkUrl.name === 'ValidationError') {
-        state.form.valid = false;
-        state.form.error = 'invalid';
-      } else {
-        state.form.valid = false;
-        state.form.error = 'not-uniq';
-      }
+      validate(state);
     }
   });
 
@@ -69,7 +57,7 @@ export default () => {
         const { feed, posts } = parse(response.data);
         const id = _.uniqueId();
         state.feeds.push({ ...feed, id, link: inputValue });
-        posts.forEach((post) => state.posts.push({ ...post, id }));
+        posts.forEach((post) => state.posts.unshift({ ...post, id }));
         state.form.processState = 'finished';
         state.form.inputValue = '';
         state.form.error = null;
@@ -77,7 +65,6 @@ export default () => {
       .catch((response, error) => {
         state.form.valid = false;
         state.form.processState = 'failed';
-        submitButton.disabled = true;
         if (response.status >= 500) {
           state.form.error = 'problems-network';
         } else {
@@ -87,11 +74,11 @@ export default () => {
       });
   });
 
-  const addNewPosts = () => {
+  const updatePosts = () => {
     const { feeds } = state;
     const { posts } = state;
     if (feeds.length === 0) {
-      setTimeout(addNewPosts, 5000);
+      setTimeout(updatePosts, 5000);
     }
     feeds.forEach((feed) => {
       const oldPosts = posts.filter((post) => post.id === feed.id);
@@ -99,10 +86,9 @@ export default () => {
       axios.get(url)
         .then((response) => {
           const data = parse(response.data);
-          const updatePosts = data.posts;
-          return updatePosts.map((post) => ({ ...post, id: feed.id }));
+          return data.posts.map((post) => ({ ...post, id: feed.id }));
         })
-        .then((updatePosts) => getNewPosts(updatePosts, oldPosts))
+        .then((currentPosts) => getNewPosts(currentPosts, oldPosts))
         .then((newPosts) => {
           if (newPosts.length !== 0) {
             newPosts.forEach((post) => [post, ...state.posts]);
@@ -114,9 +100,9 @@ export default () => {
           state.form.error = 'network';
           throw error;
         })
-        .finally(() => setTimeout(addNewPosts, 5000));
+        .finally(() => setTimeout(updatePosts, 5000));
     });
   };
   watch(state);
-  addNewPosts();
+  updatePosts();
 };
